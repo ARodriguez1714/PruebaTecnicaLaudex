@@ -1,0 +1,675 @@
+﻿@model Modelo.Tarea
+@{
+    ViewData["Title"] = "GetAll";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<style>
+    .mask-custom {
+        border-radius: 2em;
+        backdrop-filter: blur(25px);
+        border: 2px solid rgba(255, 255, 255, 0.05);
+        background-clip: padding-box;
+        box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);
+    }
+</style>
+
+<section>
+    <div class="container mask-custom">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="text-center pt-3 pb-2">
+                    <h1 style="color:black;">
+                        To do List
+                    </h1>
+                </div>
+            </div>
+        </div>
+        <br />
+        <br />
+        <div class="text-center">
+            <button type="button" class="btn btn-secondary" id="btnPersonal" onclick="botonTable('Personal')">
+                Personal
+            </button>
+            <button type="button" class="btn btn-info" id="btnProfesional" onclick="botonTable('Profesional')">
+                Profesional
+            </button>
+            <button type="button" class="btn btn-secondary" id="btnProfesional" onclick="botonTable()">
+                Todo
+            </button>
+        </div>
+
+        <br />
+        <div class="container">
+            @using (Html.BeginForm("GetAll", "Tarea", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                <div class="row">
+                    <div class="col-md-8" style="padding-top:10px">
+                        <input type="text" id="palabraBuscar" placeholder="Buscar" style="border-color: black;" name="palabra" class="form-control" />
+                    </div>
+
+                    <div class="col-md-3" style="padding-top:10px">
+                        <input type="submit" class="btn btn-info w-100 h-10" value="Buscar" />
+                    </div>
+
+                    <div class="col-md-1" style="padding-top:10px">
+                        <button type="button" class="btn btn-success w-100" id="btnAdd">
+                            +
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <hr />
+
+        @if (Model.Tareas != null)
+        {
+            <div class="row">
+                <div class="col-md-12">
+                    <table class="table table-striped table-bordered table-responsive" id="tableTareaPersonal">
+                        <thead>
+                            <tr>
+                                <th hidden>IdTarea</th>
+                                <th></th>
+                                <th>Titulo</th>
+                                <th>Descripción</th>
+                                @*  <th>Fecha de Vencimiento</th> *@
+                                <th>Prioridad</th>
+                                <th hidden>Categoria</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tBodyTarea">
+                            @foreach (Modelo.Tarea tarea in Model.Tareas)
+                            {
+                                <tr>
+                                    <td hidden>@tarea.IdTarea</td>
+                                    <td class="text-center" style="cursor:pointer;">
+                                        @if (tarea.Estado.IdEstado == 1)
+                                        {
+                                            <img src="~/Images/Unchecked.png" id=@("image"+@tarea.IdTarea) width="25px" onclick="Estatus(@tarea.Estado.IdEstado, @tarea.IdTarea)" />
+                                        }
+                                        else if (tarea.Estado.IdEstado == 2)
+                                        {
+                                            <img src="~/Images/Checked.png" id=@("image"+tarea.IdTarea) width="25px" onclick="Estatus(@tarea.Estado.IdEstado, @tarea.IdTarea)" />
+                                        }
+                                    </td>
+                                    <td>@tarea.Titulo</td>
+                                    <td>@tarea.Descripcion</td>
+                                    @*  <td>@tarea.FechaVencimiento</td> *@
+                                    <td class="text-center">
+                                        @if (tarea.Prioridad.IdPrioridad == 1)
+                                        {
+                                            <i class="fa-solid fa-star"></i>
+
+                                            <i class="fa-solid fa-star"></i>
+
+                                            <i class="fa-solid fa-star"></i>
+                                        }
+                                        else if (tarea.Prioridad.IdPrioridad == 2)
+                                        {
+                                            <i class="fa-solid fa-star"></i>
+
+                                            <i class="fa-solid fa-star"></i>
+
+                                            <i class="fa-regular fa-star"></i>
+                                        }
+                                        else if (tarea.Prioridad.IdPrioridad == 3)
+                                        {
+                                            <i class="fa-solid fa-star"></i>
+
+                                            <i class="fa-regular fa-star"></i>
+
+                                            <i class="fa-regular fa-star"></i>
+                                        }
+                                    </td>
+                                    <td hidden>@tarea.Categoria.Nombre</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-warning" id="btnUpdate" onclick="Modal(this)" value="@tarea.IdTarea"><i class="bi bi-pencil-square"></i></button>
+
+                                        <button type="button" class="btn btn-danger" id="btnDelete" onclick="Delete(this)" value="@tarea.IdTarea"><i class="bi bi-x-square"></i></button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                No existen tareas.
+            </div>
+        }
+    </div>
+</section>
+
+<div class="container">
+    @using (Html.BeginForm(null, null, FormMethod.Post, new { enctype = "multipart/form-data", @id = "myForm" }))
+    {
+        <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel">Tarea</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row" hidden>
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.IdTarea)
+                                @Html.TextBoxFor(model => model.IdTarea, new { @class = "form-control", @id = "txtIdTarea" })
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.Titulo, "Titulo:", new { @style = "font-weight: bold;" })
+                                @Html.TextBoxFor(model => model.Titulo, new { @class = "form-control", @id = "txtTitulo", @onkeypress = "return SoloLetras(event, 'lblTitulo')" })
+                                @Html.ValidationMessageFor(model => model.Titulo, null, new { @style = "color: red;" })
+                                @Html.Label(null, null, new { @id = "lblTitulo" })
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.LabelFor(model => model.Descripcion, "Descripción:", new { @style = "font-weight: bold;" })
+                                @Html.TextBoxFor(model => model.Descripcion, new { @class = "form-control", @id = "txtDescripcion", @onkeypress = "return SoloLetras(event, 'lblDescripcion')" })
+                                @Html.ValidationMessageFor(model => model.Descripcion, null, new { @style = "color: red;" })
+                                @Html.Label(null, null, new { @id = "lblDescripcion" })
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.Label("Fecha de Vencimiento:", null, new { @style = "font-weight: bold;" })
+                                @Html.TextBoxFor(model => model.FechaVencimiento, new { @class = "form-control", @id = "txtFechaVencimiento" })
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.Label("Categoria:", null, new { @style = "font-weight: bold;", @id = "lblCategoria" })
+                                @if (Model.Categoria.Categorias == null)
+                                {
+                                    @Html.DropDownListFor(model => model.Categoria.IdCategoria,
+                                             new SelectList(string.Empty, "Value", "Text"), "Seleccione una categoria", new { @class = "form-control", @id = "ddlCategoria" })
+                                }
+                                else
+                                {
+                                    @Html.DropDownListFor(model => model.Categoria.IdCategoria,
+                                             new SelectList(Model.Categoria.Categorias, "IdCategoria", "Nombre"), "Seleccione una Categoria", new { @class = "form-control", @id = "ddlCategoria" })
+                                }
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                @Html.Label("Prioridad:", null, new { @style = "font-weight: bold;", @id = "lblPrioridad" })
+                                @if (Model.Prioridad.Prioridades == null)
+                                {
+                                    @Html.DropDownListFor(model => model.Prioridad.IdPrioridad,
+                                             new SelectList(string.Empty, "Value", "Text"), "Seleccione la prioridad", new { @class = "form-control", @id = "ddlPrioridad" })
+                                }
+                                else
+                                {
+                                    @Html.DropDownListFor(model => model.Prioridad.IdPrioridad,
+                                             new SelectList(Model.Prioridad.Prioridades, "IdPrioridad", "Nombre"), "Seleccione la Prioridad", new { @class = "form-control", @id = "ddlPrioridad" })
+                                }
+                            </div>
+                        </div>
+                        @* <div class="row">
+                            <div class="col-md-12">
+                                @Html.Label("Estado:", null, new { @style = "font-weight: bold;", @id = "lblEstado" })
+                                @if (Model.Estado.Estados == null)
+                                {
+                                    @Html.DropDownListFor(model => model.Estado.IdEstado,
+                                             new SelectList(string.Empty, "Value", "Text"), "Seleccione el estado", new { @class = "form-control", @id = "ddlEstado" })
+                                }
+                                else
+                                {
+                                    @Html.DropDownListFor(model => model.Estado.IdEstado,
+                                             new SelectList(Model.Estado.Estados, "IdEstado", "Nombre"), "Seleccione el estado", new { @class = "form-control", @id = "ddlEstado" })
+                                }
+                            </div>
+                        </div> *@
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-success" id="btnGuardarTarea">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.css" rel="stylesheet" />
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js"></script>
+    <script src="https://kit.fontawesome.com/e3d7376acc.js" crossorigin="anonymous"></script>
+    <script>
+
+        $(document).ready(function () {
+            $('#txtFechaVencimiento').datetimepicker({
+                minDate: '0',
+                onChangeDateTime: function (ct, $input) {
+                    console.log('onChange: ' + $input.val());
+                },
+                onClose: function (ct, $input) {
+                    console.log('close.');
+                },
+                onShow: function (ct, $input) {
+                    console.log('show.');
+                },
+            });
+        });
+
+        $('#btnAdd').click(function () {
+            $("#txtIdTarea").val("");
+            $("#txtTitulo").val("");
+            $("#txtDescripcion").val("");
+            $('#txtFechaVencimiento').val("");
+            $('#ddlPrioridad').val("");
+            $('#ddlCategoria').val("");
+            $('#ddlEstado').val("");
+            $('#lblTitulo').empty();
+            $('#lblDescripcion').empty();
+            $('#ddlPrioridad').show();
+            $('#lblPrioridad').show();
+            $('#lblEstado').show();
+            $('#lblCategoria').show();
+            $('#ddlCategoria').show();
+            $('#ddlEstado').show();
+            $('#modal').modal('show');
+        });
+
+        function Modal(boton) {
+
+            $.ajax({
+                url: '@Url.Action("GetById")',
+
+                data: { idTarea: boton.value },
+
+                type: 'GET',
+
+                dataType: 'json',
+
+                success: function (data) {
+
+                    $('#txtIdTarea').val(data.object.idTarea)
+                    $('#txtTitulo').val(data.object.titulo)
+                    $('#txtDescripcion').val(data.object.descripcion)
+                    $('#txtFechaVencimiento').val(data.object.fechaVencimiento)
+                    $('#ddlPrioridad').val(data.object.prioridad.idPrioridad)
+                    $('#ddlCategoria').val(data.object.categoria.idCategoria)
+                    $('#ddlEstado').val(data.object.estado.idEstado)
+
+                    $('#lblTitulo').empty();
+                    $('#lblDescripcion').empty();
+
+                    $('#ddlPrioridad').hide();
+                    $('#lblPrioridad').hide();
+                    $('#lblCategoria').hide();
+                    $('#lblEstado').hide();
+                    $('#ddlCategoria').hide();
+                    $('#ddlEstado').hide();
+
+
+                    $('#modal').modal('show');
+                },
+                error: function () {
+                    alert('Disculpe, existió un problema');
+                },
+            });
+        }
+
+        $('#btnGuardarTarea').click(function () {
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GuardarTarea")',
+                data: $('#myForm').serialize(),
+                dataType: 'json',
+                success: function () {
+                    $('#modal').modal('hide');
+
+                    $('#tBodyTarea').empty();
+
+                    $.ajax({
+                        type: 'GET',
+                        url: '@Url.Action("GetAllJson")',
+                        success: function (result) //Ok 200
+                        {
+                            $.each(result.tareas, function (index, item) {
+                                var propiedad;
+                                if (item.prioridad.idPrioridad == 1) {
+                                    propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>';
+                                } else if (item.prioridad.idPrioridad == 2) {
+                                    propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>';
+                                } else if (item.prioridad.idPrioridad == 3) {
+                                    propiedad = '<i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+                                }
+                                var estado;
+                                if (item.estado.idEstado == 1) {
+                                    estado = '<img src="/Images/Unchecked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                                }
+                                else if (item.estado.idEstado == 2) {
+                                    estado = '<img src="/Images/Checked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                                }
+                                console.log(estado);
+                                var fila =
+                                    '<tr>'
+                                    + '<td hidden>' + item.idTarea + '</td>'
+                                    + '<td class="text-center" style="cursor:pointer;">'
+                                    + estado
+                                    + '</td>'
+                                    + '<td>' + item.titulo + '</td>'
+                                    + '<td>' + item.descripcion + '</td>'
+                                    + '<td hidden>' + item.fechaVencimiento + '</td>'
+                                    + '<td class="text-center">'
+                                    + propiedad
+                                    + '</td>'
+                                    + '<td hidden>' + item.categoria.nombre + '</td>'
+                                    + '<td class="text-center">'
+                                    + '<button type="button" class="btn btn-warning" id="btnUpdate" onclick="Modal(this)" value="' + item.idTarea + '"><i class="bi bi-pencil-square"></i></button>'
+                                    + ' '
+                                    + '<button type="button" class="btn btn-danger" id="btnDelete" onclick="Delete(this)" value="' + item.idTarea + '"><i class="bi bi-x-square"></i></button>'
+                                    + '</td>'
+                                    + '</tr>';
+
+                                $('#tBodyTarea').append(fila);
+
+                            });
+                        },
+                        error: function (result) {
+                            alert('Error en la consulta.');
+                        }
+
+                    });
+
+                }
+            });
+        });
+
+        function Delete(datos) {
+            var checkconfirm = confirm('¿Estas seguro de eliminarlo?');
+            if (checkconfirm == true) {
+
+                $.ajax({
+                    url: '@Url.Action("Delete")',
+                    data: { idTarea: datos.value },
+                    type: 'GET',
+                    datatype: 'json',
+                    success: function () {
+                        $('#tBodyTarea').empty();
+
+                        $.ajax({
+                            type: 'GET',
+                            url: '@Url.Action("GetAllJson")',
+                            success: function (result) //Ok 200
+                            {
+                                $.each(result.tareas, function (index, item) {
+                                    var propiedad;
+                                    if (item.prioridad.idPrioridad == 1) {
+                                        propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>';
+                                    } else if (item.prioridad.idPrioridad == 2) {
+                                        propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>';
+                                    } else if (item.prioridad.idPrioridad == 3) {
+                                        propiedad = '<i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+                                    }
+                                    var estado;
+                                    if (item.estado.idEstado == 1) {
+                                        estado = '<img src="/Images/Unchecked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                                    }
+                                    else if (item.estado.idEstado == 2) {
+                                        estado = '<img src="/Images/Checked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                                    }
+                                    console.log(estado);
+                                    var fila =
+                                        '<tr>'
+                                        + '<td hidden>' + item.idTarea + '</td>'
+                                        + '<td class="text-center" style="cursor:pointer;">'
+                                        + estado
+                                        + '</td>'
+                                        + '<td>' + item.titulo + '</td>'
+                                        + '<td>' + item.descripcion + '</td>'
+                                        + '<td hidden>' + item.fechaVencimiento + '</td>'
+                                        + '<td class="text-center">'
+                                        + propiedad
+                                        + '</td>'
+                                        + '<td hidden>' + item.categoria.nombre + '</td>'
+                                        + '<td class="text-center">'
+                                        + '<button type="button" class="btn btn-warning" id="btnUpdate" onclick="Modal(this)" value="' + item.idTarea + '"><i class="bi bi-pencil-square"></i></button>'
+                                        + ' '
+                                        + '<button type="button" class="btn btn-danger" id="btnDelete" onclick="Delete(this)" value="' + item.idTarea + '"><i class="bi bi-x-square"></i></button>'
+                                        + '</td>'
+                                        + '</tr>';
+
+                                    $('#tBodyTarea').append(fila);
+
+                                });
+                            },
+                            error: function (result) {
+                                alert('Error en la consulta.');
+                            }
+
+                        });
+                    },
+
+                    error: function () {
+                        alert('Disculpe, existió un problema');
+                    },
+                });
+            } else {
+                return false;
+            }
+        }
+
+
+        function botonTable(tipoTabla) {
+
+            if (tipoTabla == 'Personal') {
+                $('#tBodyTarea').empty();
+
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("GetAllPersonal")',
+                    success: function (result) {
+                        $.each(result.tareas, function (index, item) {
+                            var propiedad;
+                            if (item.prioridad.idPrioridad == 1) {
+                                propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>';
+                            } else if (item.prioridad.idPrioridad == 2) {
+                                propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>';
+                            } else if (item.prioridad.idPrioridad == 3) {
+                                propiedad = '<i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+                            }
+                            var estado;
+                            if (item.estado.idEstado == 1) {
+                                estado = '<img src="/Images/Unchecked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                            }
+                            else if (item.estado.idEstado == 2) {
+                                estado = '<img src="/Images/Checked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                            }
+                            console.log(estado);
+                            var fila =
+                                '<tr>'
+                                + '<td hidden>' + item.idTarea + '</td>'
+                                + '<td class="text-center" style="cursor:pointer;">'
+                                + estado
+                                + '</td>'
+                                + '<td>' + item.titulo + '</td>'
+                                + '<td>' + item.descripcion + '</td>'
+                                + '<td hidden>' + item.fechaVencimiento + '</td>'
+                                + '<td class="text-center">'
+                                + propiedad
+                                + '</td>'
+                                + '<td hidden>' + item.categoria.nombre + '</td>'
+                                + '<td class="text-center">'
+                                + '<button type="button" class="btn btn-warning" id="btnUpdate" onclick="Modal(this)" value="' + item.idTarea + '"><i class="bi bi-pencil-square"></i></button>'
+                                + ' '
+                                + '<button type="button" class="btn btn-danger" id="btnDelete" onclick="Delete(this)" value="' + item.idTarea + '"><i class="bi bi-x-square"></i></button>'
+                                + '</td>'
+                                + '</tr>';
+
+                            $('#tBodyTarea').append(fila);
+
+                        });
+                    },
+                    error: function (result) {
+                        alert('Error en la consulta.');
+                    }
+
+                });
+            } else if (tipoTabla == 'Profesional') {
+                $('#tBodyTarea').empty();
+
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("GetAllProfesional")',
+                    success: function (result) {
+                        $.each(result.tareas, function (index, item) {
+                            var propiedad;
+                            if (item.prioridad.idPrioridad == 1) {
+                                propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>';
+                            } else if (item.prioridad.idPrioridad == 2) {
+                                propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>';
+                            } else if (item.prioridad.idPrioridad == 3) {
+                                propiedad = '<i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+                            }
+                            var estado;
+                            if (item.estado.idEstado == 1) {
+                                estado = '<img src="/Images/Unchecked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                            }
+                            else if (item.estado.idEstado == 2) {
+                                estado = '<img src="/Images/Checked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                            }
+                            console.log(estado);
+                            var fila =
+                                '<tr>'
+                                + '<td hidden>' + item.idTarea + '</td>'
+                                + '<td class="text-center" style="cursor:pointer;">'
+                                + estado
+                                + '</td>'
+                                + '<td>' + item.titulo + '</td>'
+                                + '<td>' + item.descripcion + '</td>'
+                                + '<td hidden>' + item.fechaVencimiento + '</td>'
+                                + '<td class="text-center">'
+                                + propiedad
+                                + '</td>'
+                                + '<td hidden>' + item.categoria.nombre + '</td>'
+                                + '<td class="text-center">'
+                                + '<button type="button" class="btn btn-warning" id="btnUpdate" onclick="Modal(this)" value="' + item.idTarea + '"><i class="bi bi-pencil-square"></i></button>'
+                                + ' '
+                                + '<button type="button" class="btn btn-danger" id="btnDelete" onclick="Delete(this)" value="' + item.idTarea + '"><i class="bi bi-x-square"></i></button>'
+                                + '</td>'
+                                + '</tr>';
+
+                            $('#tBodyTarea').append(fila);
+
+                        });
+                    },
+                    error: function (result) {
+                        alert('Error en la consulta.');
+                    }
+
+                });
+            } else {
+                $('#tBodyTarea').empty();
+
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("GetAllJson")',
+                    success: function (result) {
+                        $.each(result.tareas, function (index, item) {
+                            var propiedad;
+                            if (item.prioridad.idPrioridad == 1) {
+                                propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>';
+                            } else if (item.prioridad.idPrioridad == 2) {
+                                propiedad = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>';
+                            } else if (item.prioridad.idPrioridad == 3) {
+                                propiedad = '<i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+                            }
+                            var estado;
+                            if (item.estado.idEstado == 1) {
+                                estado = '<img src="/Images/Unchecked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                            }
+                            else if (item.estado.idEstado == 2) {
+                                estado = '<img src="/Images/Checked.png" width="25px" id="image' + item.idTarea + '" onclick="Estatus(' + item.estado.idEstado + ',' + item.idTarea + ')"/>';
+                            }
+                            console.log(estado);
+                            var fila =
+                                '<tr>'
+                                + '<td hidden>' + item.idTarea + '</td>'
+                                + '<td class="text-center" style="cursor:pointer;">'
+                                + estado
+                                + '</td>'
+                                + '<td>' + item.titulo + '</td>'
+                                + '<td>' + item.descripcion + '</td>'
+                                + '<td hidden>' + item.fechaVencimiento + '</td>'
+                                + '<td class="text-center">'
+                                + propiedad
+                                + '</td>'
+                                + '<td hidden>' + item.categoria.nombre + '</td>'
+                                + '<td class="text-center">'
+                                + '<button type="button" class="btn btn-warning" id="btnUpdate" onclick="Modal(this)" value="' + item.idTarea + '"><i class="bi bi-pencil-square"></i></button>'
+                                + ' '
+                                + '<button type="button" class="btn btn-danger" id="btnDelete" onclick="Delete(this)" value="' + item.idTarea + '"><i class="bi bi-x-square"></i></button>'
+                                + '</td>'
+                                + '</tr>';
+
+                            $('#tBodyTarea').append(fila);
+
+                        });
+                    },
+                    error: function (result) {
+                        alert('Error en la consulta.');
+                    }
+
+                });
+            }
+        }
+
+        function SoloLetras(event, controlId) {
+            var letra = event.key;
+            var regexOnlyLetters = /^[a-zA-Z\s]*$/g;
+
+            if (regexOnlyLetters.test(letra)) {
+                $('#' + controlId).text("");
+                return true;
+            } else {
+                $('#' + controlId).text("*Solo se aceptan letras.");
+                $('#' + controlId).css({ "color": "red" });
+                return false;
+            }
+        }
+
+        function Estatus(idEstatus, idTarea) {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CambiarEstatus")',
+                dataType: 'json',
+                data: { idEstatus, idTarea },
+                success: function (result) {
+                    var valor_src = $('#image' + idTarea).attr("src");
+
+                    if (valor_src == "/Images/Checked.png") {
+                        $('#image' + idTarea).attr('src', '/Images/Unchecked.png');
+                    } else {
+                        $('#image' + idTarea).attr('src', '/Images/Checked.png');
+                    }
+                },
+                error: function (ex) {
+                    alert('Failed.' + ex);
+                }
+            });
+        }
+    </script>
+
+}

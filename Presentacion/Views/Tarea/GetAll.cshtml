@@ -204,7 +204,7 @@
                                 }
                             </div>
                         </div>
-                        @* <div class="row">
+                        <div class="row">
                             <div class="col-md-12">
                                 @Html.Label("Estado:", null, new { @style = "font-weight: bold;", @id = "lblEstado" })
                                 @if (Model.Estado.Estados == null)
@@ -218,7 +218,7 @@
                                              new SelectList(Model.Estado.Estados, "IdEstado", "Nombre"), "Seleccione el estado", new { @class = "form-control", @id = "ddlEstado" })
                                 }
                             </div>
-                        </div> *@
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -274,6 +274,8 @@
             $('#lblCategoria').show();
             $('#ddlCategoria').show();
             $('#ddlEstado').show();
+            $('#ddlEstado').hide();
+            $('#lblEstado').hide();
             $('#modal').modal('show');
         });
 

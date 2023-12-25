@@ -21,6 +21,7 @@ public partial class Tarea
     public string? NombreEstado { get; set; }
     public string? NombrePrioridad { get; set; }
     public string? NombreCategoria { get; set; }
+
     public virtual Categorium? IdCategoriaNavigation { get; set; }
 
     public virtual Estado? IdEstadoNavigation { get; set; }

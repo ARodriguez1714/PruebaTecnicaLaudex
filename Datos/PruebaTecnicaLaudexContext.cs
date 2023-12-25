@@ -31,7 +31,7 @@ public partial class PruebaTecnicaLaudexContext : DbContext
     {
         modelBuilder.Entity<Categorium>(entity =>
         {
-            entity.HasKey(e => e.IdCategoria).HasName("PK__Categori__A3C02A1060241FFC");
+            entity.HasKey(e => e.IdCategoria).HasName("PK__Categori__A3C02A10C3AB70B4");
 
             entity.Property(e => e.IdCategoria).ValueGeneratedOnAdd();
             entity.Property(e => e.Nombre)
@@ -41,7 +41,7 @@ public partial class PruebaTecnicaLaudexContext : DbContext
 
         modelBuilder.Entity<Estado>(entity =>
         {
-            entity.HasKey(e => e.IdEstado).HasName("PK__Estado__FBB0EDC147A9210E");
+            entity.HasKey(e => e.IdEstado).HasName("PK__Estado__FBB0EDC14ABE0FEC");
 
             entity.ToTable("Estado");
 
@@ -53,7 +53,7 @@ public partial class PruebaTecnicaLaudexContext : DbContext
 
         modelBuilder.Entity<Prioridad>(entity =>
         {
-            entity.HasKey(e => e.IdPrioridad).HasName("PK__Priorida__0FC70DD5F4D403E1");
+            entity.HasKey(e => e.IdPrioridad).HasName("PK__Priorida__0FC70DD527667A2D");
 
             entity.ToTable("Prioridad");
 
@@ -65,7 +65,7 @@ public partial class PruebaTecnicaLaudexContext : DbContext
 
         modelBuilder.Entity<Tarea>(entity =>
         {
-            entity.HasKey(e => e.IdTarea).HasName("PK__Tarea__EADE909871B045E5");
+            entity.HasKey(e => e.IdTarea).HasName("PK__Tarea__EADE9098DACDEFF3");
 
             entity.ToTable("Tarea");
 
@@ -80,15 +80,15 @@ public partial class PruebaTecnicaLaudexContext : DbContext
 
             entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Tareas)
                 .HasForeignKey(d => d.IdCategoria)
-                .HasConstraintName("FK__Tarea__IdCategor__173876EA");
+                .HasConstraintName("FK__Tarea__IdCategor__3E52440B");
 
             entity.HasOne(d => d.IdEstadoNavigation).WithMany(p => p.Tareas)
                 .HasForeignKey(d => d.IdEstado)
-                .HasConstraintName("FK__Tarea__IdEstado__164452B1");
+                .HasConstraintName("FK__Tarea__IdEstado__3D5E1FD2");
 
             entity.HasOne(d => d.IdPrioridadNavigation).WithMany(p => p.Tareas)
                 .HasForeignKey(d => d.IdPrioridad)
-                .HasConstraintName("FK__Tarea__IdPriorid__182C9B23");
+                .HasConstraintName("FK__Tarea__IdPriorid__3F466844");
         });
 
         OnModelCreatingPartial(modelBuilder);

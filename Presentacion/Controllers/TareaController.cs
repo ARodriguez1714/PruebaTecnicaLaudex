@@ -37,8 +37,7 @@ namespace Presentacion.Controllers
         public IActionResult GetAll(string palabra)
         {
             Modelo.Tarea tarea = new Modelo.Tarea();
-            //tarea.Titulo = (tarea.Titulo == null) ? "" : tarea.Titulo;
-            //tarea.Descripcion = (tarea.Descripcion == null) ? "" : tarea.Descripcion;
+            palabra = (palabra == null) ? "" : palabra;
 
             Modelo.Result result = Negocio.Tarea.BusquedaAbierta(palabra);
 
